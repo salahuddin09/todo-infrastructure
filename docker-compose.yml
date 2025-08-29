@@ -1,0 +1,106 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: tododb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "user", "-d", "tododb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticmq:
+    image: softwaremill/elasticmq-native:latest
+    container_name: elasticmq
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+    volumes:
+      - ./elasticmq.conf:/opt/elasticmq.conf
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 30s
+      retries: 3
+
+  backend:
+    build:
+      context: ../todo-backend/backend
+      dockerfile: Dockerfile
+    container_name: backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticmq:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tododb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+
+  worker:
+    build:
+      context: ../todo-backend/worker-service
+      dockerfile: Dockerfile
+    container_name: worker
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_REGION: us-east-1
+      ELASTICMQ_URL: http://elasticmq:9324
+      SQS_QUEUE_NAME: todo-queue
+      restart: always
+
+  frontend:
+    build:
+      context: ../todo-frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "3000:80"
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_started
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
