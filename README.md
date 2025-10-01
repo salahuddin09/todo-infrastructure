@@ -74,7 +74,7 @@ This project demonstrates deploying a full-stack Todo Application on AWS using m
 
 | Port | Protocol | Source | Purpose |
 |------|----------|--------|---------|
-| 22 | TCP | `103.137.46.8/32` | SSH Access (Your IP) |
+| 22 | TCP | `103.133.34.8/32` | SSH Access (Your IP) |
 | 80 | TCP | `0.0.0.0/0` | HTTP Access (Public) |
 | 8080 | TCP | `103.137.46.8/32` | Direct API Testing |
 
