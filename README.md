@@ -57,7 +57,7 @@ This project demonstrates deploying a full-stack Todo Application on AWS using m
 |------------|-------------|------|
 | 🏗️ **Infrastructure** | Docker + NGINX + Compose | [`todo-infrastructure`](https://github.com/salahuddin09/todo-infrastructure) |
 | 🔧 **Backend** | Spring Boot API | [`todo-backend`](https://github.com/salahuddin09/todo-backend) |
-| ⚡ **Worker Service** | Background Processing | [`todo-worker`](https://github.com/salahuddin09/todo-worker) |
+| ⚡ **Worker Service** | Background Processing | [`todo-worker`](https://github.com/salahuddin09/todo-backend) |
 | 🎨 **Frontend** | React Application | [`todo-frontend`](https://github.com/salahuddin09/todo-frontend) |
 
 ## 🔧 Step-by-Step Deployment
